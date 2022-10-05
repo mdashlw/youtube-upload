@@ -4,9 +4,11 @@ A minimalistic testing project using YouTube Studio internal API to upload video
 
 Based on https://github.com/adasq/youtube-studio
 
-The main problem is getting `sessionInfo.token` (`sessionToken`), which is **required** for `https://studio.youtube.com/youtubei/v1/upload/createvideo`. It reportedly lasts for 7 days.
+## Issues
 
-### Obtaining `sessionToken`
+### 1. `sessionInfo.token`
+
+A session token (`sessionToken`) is **required** for the final step of uploading a video - calling `https://studio.youtube.com/youtubei/v1/upload/createvideo`. Getting it via API is deemed impossible due to anti-bot measures. The token reportedly lasts for 7 days.
 
 #### Method 0 (manual)
 
@@ -37,4 +39,13 @@ See https://github.com/adasq/youtube-studio#preparing-authentication
 
 #### Method 3 (most feasible)
 
-Use something like [Selenium](https://www.npmjs.com/package/selenium-webdriver) or [Puppeteer](https://www.npmjs.com/package/puppeteer). See `puppeteer.js`.
+Use something like [Selenium](https://www.npmjs.com/package/selenium-webdriver) or [Puppeteer](https://www.npmjs.com/package/puppeteer). See https://github.com/mdashlw/youtube-upload/blob/8fdd45713be235ebb5d4925426bc377f27b72408/puppeteer.js for a working implementation.
+
+### 2. Video stuck at processing
+
+The created video never starts to process. Cause is currently unknown.
+
+#### Thoughts
+
+- Something wrong with Innertube `context`? https://github.com/mdashlw/youtube-upload/blob/b5f7e6e8fb9ad36ab01055258704e37fb4e38782/index.js#L200
+- A better implementation of `/feedback` is required? https://github.com/mdashlw/youtube-upload/blob/b5f7e6e8fb9ad36ab01055258704e37fb4e38782/index.js#L267
