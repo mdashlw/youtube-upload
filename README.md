@@ -41,7 +41,7 @@ See https://github.com/adasq/youtube-studio#preparing-authentication
 
 Use something like [Selenium](https://www.npmjs.com/package/selenium-webdriver) or [Puppeteer](https://www.npmjs.com/package/puppeteer). See https://github.com/mdashlw/youtube-upload/blob/8fdd45713be235ebb5d4925426bc377f27b72408/puppeteer.js for a working implementation.
 
-### 2. Video stuck at processing
+### 2. Stuck at "Processing has started." / "Processing will begin shortly"
 
 The created video never starts to process. Cause is currently unknown.
 
