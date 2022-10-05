@@ -49,3 +49,4 @@ The created video never starts to process. Cause is currently unknown.
 
 - Something wrong with Innertube `context`? https://github.com/mdashlw/youtube-upload/blob/b5f7e6e8fb9ad36ab01055258704e37fb4e38782/index.js#L200
 - A better implementation of `/feedback` is required? https://github.com/mdashlw/youtube-upload/blob/b5f7e6e8fb9ad36ab01055258704e37fb4e38782/index.js#L267
+- YouTube Studio makes a bunch of API calls to get info about the uploaded video. Are they required?
