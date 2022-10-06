@@ -1,9 +1,6 @@
 import crypto from "node:crypto";
-import timers from "node:timers/promises";
 import puppeteer from "puppeteer";
 import undici from "undici";
-
-const YOUTUBE_STUDIO_URL = "https://studio.youtube.com";
 
 let storage;
 let ytcfg, sessionToken;
@@ -19,6 +16,11 @@ function refresh() {
       (await browser.userAgent()).replace("HeadlessChrome", "Chrome")
     );
     await page.setCookie(
+      {
+        name: "SID",
+        value: storage.SID,
+        domain: ".youtube.com",
+      },
       {
         name: "HSID",
         value: storage.HSID,
@@ -37,11 +39,6 @@ function refresh() {
       {
         name: "SAPISID",
         value: storage.SAPISID,
-        domain: ".youtube.com",
-      },
-      {
-        name: "SID",
-        value: storage.SID,
         domain: ".youtube.com",
       }
     );
@@ -85,7 +82,7 @@ function refresh() {
       }
     });
 
-    await page.goto(YOUTUBE_STUDIO_URL);
+    await page.goto("https://studio.youtube.com/");
   });
 }
 
@@ -125,7 +122,13 @@ async function startUpload(frontendUploadId, { fileName }) {
     method: "POST",
     headers: {
       "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
-      cookie: `HSID=${storage.HSID}; SSID=${storage.SSID}; APISID=${storage.APISID}; SAPISID=${storage.SAPISID}; SID=${storage.SID}`,
+      cookie: `SID=${storage.SID}; HSID=${storage.HSID}; SSID=${storage.SSID}; APISID=${storage.APISID}; SAPISID=${storage.SAPISID}`,
+      origin: "https://studio.youtube.com",
+      referer: "https://studio.youtube.com/",
+      "user-agent": ytcfg.INNERTUBE_CONTEXT.client.userAgent.substring(
+        0,
+        ytcfg.INNERTUBE_CONTEXT.client.userAgent.lastIndexOf(",")
+      ),
       "x-goog-upload-command": "start",
       "x-goog-upload-file-name": fileName,
       "x-goog-upload-protocol": "resumable",
@@ -141,7 +144,14 @@ async function uploadAndFinalize(uploadUrl, { fileName, stream }) {
   const response = await undici.request(uploadUrl, {
     method: "POST",
     headers: {
-      cookie: `HSID=${storage.HSID}; SSID=${storage.SSID}; APISID=${storage.APISID}; SAPISID=${storage.SAPISID}; SID=${storage.SID}`,
+      "content-type": "application/x-www-form-urlencoded;charset=utf-8",
+      cookie: `SID=${storage.SID}; HSID=${storage.HSID}; SSID=${storage.SSID}; APISID=${storage.APISID}; SAPISID=${storage.SAPISID}`,
+      origin: "https://studio.youtube.com",
+      referer: "https://studio.youtube.com/",
+      "user-agent": ytcfg.INNERTUBE_CONTEXT.client.userAgent.substring(
+        0,
+        ytcfg.INNERTUBE_CONTEXT.client.userAgent.lastIndexOf(",")
+      ),
       "x-goog-upload-command": "upload, finalize",
       "x-goog-upload-file-name": fileName,
       "x-goog-upload-offset": "0",
@@ -162,7 +172,7 @@ function generateSAPISIDHASH() {
   const timestamp = Date.now();
   const hash = crypto
     .createHash("sha1")
-    .update(`${timestamp} ${storage.SAPISID} ${YOUTUBE_STUDIO_URL}`)
+    .update(`${timestamp} ${storage.SAPISID} https://studio.youtube.com`)
     .digest("hex");
 
   return `${timestamp}_${hash}`;
@@ -179,14 +189,15 @@ async function createVideo({
       method: "POST",
       headers: {
         authorization: `SAPISIDHASH ${generateSAPISIDHASH()}`,
-        cookie: `HSID=${storage.HSID}; SSID=${storage.SSID}; APISID=${storage.APISID}; SAPISID=${storage.SAPISID}; SID=${storage.SID}`,
-        origin: YOUTUBE_STUDIO_URL,
-        referer: YOUTUBE_STUDIO_URL,
+        "content-type": "application/json",
+        cookie: `SID=${storage.SID}; HSID=${storage.HSID}; SSID=${storage.SSID}; APISID=${storage.APISID}; SAPISID=${storage.SAPISID}`,
+        origin: "https://studio.youtube.com",
+        referer: "https://studio.youtube.com/",
         "user-agent": ytcfg.INNERTUBE_CONTEXT.client.userAgent.substring(
           0,
           ytcfg.INNERTUBE_CONTEXT.client.userAgent.lastIndexOf(",")
         ),
-        "x-origin": YOUTUBE_STUDIO_URL,
+        "x-origin": "https://studio.youtube.com",
       },
       body: JSON.stringify({
         channelId: ytcfg.CHANNEL_ID,
@@ -199,21 +210,10 @@ async function createVideo({
         initialMetadata,
         context: {
           client: {
-            clientName: 62,
-            clientVersion: "1.20221002.01.00",
-            hl: "en",
-            gl: "US",
-            experimentsToken: "",
-            utcOffsetMinutes: 180,
-            userInterfaceTheme: "USER_INTERFACE_THEME_DARK",
-            screenWidthPoints: 1920,
-            screenHeightPoints: 961,
-            screenPixelDensity: 1,
-            screenDensityFloat: 1,
+            clientName: ytcfg.INNERTUBE_CLIENT_NAME,
+            clientVersion: ytcfg.INNERTUBE_CLIENT_VERSION,
           },
           request: {
-            returnLogEntry: true,
-            internalExperimentFlags: [],
             sessionInfo: {
               token: sessionToken,
             },
@@ -243,7 +243,7 @@ export async function upload({ fileName, stream }, metadata) {
   });
   const scottyResourceId = await uploadAndFinalize(uploadUrl, {
     fileName,
-    body: stream,
+    stream,
   });
   const data = await createVideo({
     scottyResourceId,
@@ -264,66 +264,5 @@ export async function upload({ fileName, stream }, metadata) {
     },
   });
 
-  async function handleFeedback(item) {
-    if (item.contents) {
-      console.log("-".repeat(64));
-      for (const content of item.contents) {
-        console.log(JSON.stringify(content, null, 2));
-      }
-      console.log("-".repeat(64));
-    }
-
-    if (!item.continuations) {
-      return;
-    }
-
-    const continuation = item.continuations.find(
-      (c) => c.uploadFeedbackRefreshContinuation
-    ).uploadFeedbackRefreshContinuation;
-
-    await timers.setTimeout(continuation.continueInMs);
-
-    const response = await undici.request(
-      `https://studio.youtube.com/youtubei/v1/upload/feedback?alt=json&key=${ytcfg.INNERTUBE_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          authorization: `SAPISIDHASH ${generateSAPISIDHASH()}`,
-          cookie: `HSID=${storage.HSID}; SSID=${storage.SSID}; APISID=${storage.APISID}; SAPISID=${storage.SAPISID}; SID=${storage.SID}`,
-          referer: YOUTUBE_STUDIO_URL,
-          "x-origin": YOUTUBE_STUDIO_URL,
-        },
-        body: JSON.stringify({
-          context: {
-            ...ytcfg.INNERTUBE_CONTEXT,
-            request: {
-              ...ytcfg.INNERTUBE_CONTEXT.request,
-              sessionInfo: {
-                token: sessionToken,
-              },
-            },
-            user: {
-              ...ytcfg.INNERTUBE_CONTEXT.user,
-              onBehalfOfUser: ytcfg.DELEGATED_SESSION_ID,
-              delegationContext: ytcfg.DELEGATION_CONTEXT,
-              serializedDelegationContext:
-                ytcfg.INNERTUBE_CONTEXT_SERIALIZED_DELEGATION_CONTEXT,
-            },
-            clientScreenNonce: ytcfg["client-screen-nonce"],
-          },
-          continuations: [continuation.continuation],
-        }),
-        throwOnError: true,
-      }
-    );
-    const data = await response.body.json();
-
-    await handleFeedback(
-      data.continuationContents.find((c) => c.uploadFeedbackItemContinuation)
-        .uploadFeedbackItemContinuation
-    );
-  }
-
-  console.log(data.contents.uploadFeedbackItemRenderer.continuations);
-  await handleFeedback(data.contents.uploadFeedbackItemRenderer);
+  console.log(JSON.stringify(data, null, 2));
 }

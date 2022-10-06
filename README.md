@@ -4,7 +4,7 @@ A minimalistic testing project using YouTube Studio internal API to upload video
 
 Based on https://github.com/adasq/youtube-studio
 
-## Issues
+## Encountered issues
 
 ### 1. `sessionInfo.token`
 
@@ -37,16 +37,6 @@ See https://github.com/adasq/youtube-studio#preparing-authentication
 - **TO CHECK:** what happens if you pass the same `challenge`, `botguardResponse`, and `ivctx` to `/get_web_reauth_url` (step 1) after a week?
 - **TO CHECK:** what happens if you pass the same `sessionRiskCtx` to `/grst` (step 2) after a week?
 
-#### Method 3 (most feasible)
+#### The solution
 
 Use something like [Selenium](https://www.npmjs.com/package/selenium-webdriver) or [Puppeteer](https://www.npmjs.com/package/puppeteer). See https://github.com/mdashlw/youtube-upload/blob/8fdd45713be235ebb5d4925426bc377f27b72408/puppeteer.js for a working implementation.
-
-### 2. Stuck at "Processing has started." / "Processing will begin shortly"
-
-The created video never starts to process. Cause is currently unknown.
-
-#### Thoughts
-
-- Something wrong with Innertube `context`? https://github.com/mdashlw/youtube-upload/blob/b5f7e6e8fb9ad36ab01055258704e37fb4e38782/index.js#L200
-- A better implementation of `/feedback` is required? https://github.com/mdashlw/youtube-upload/blob/b5f7e6e8fb9ad36ab01055258704e37fb4e38782/index.js#L267
-- YouTube Studio makes a bunch of API calls to get info about the uploaded video. Are they required?
