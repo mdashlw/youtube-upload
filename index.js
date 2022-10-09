@@ -215,7 +215,7 @@ export default class YouTubeStudio {
 
   async createVideo({ scottyResourceId, frontendUploadId, initialMetadata }) {
     const response = await undici.request(
-      `https://studio.youtube.com/youtubei/v1/upload/createvideo?alt=json&key=${this.ytcfg.INNERTUBE_API_KEY}`,
+      `https://studio.youtube.com/youtubei/v1/upload/createvideo?alt=json&key=${this.ytcfg.INNERTUBE_API_KEY}&prettyPrint=false`,
       {
         method: "POST",
         headers: {
