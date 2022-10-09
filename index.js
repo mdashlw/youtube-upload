@@ -56,6 +56,11 @@ export class SessionInfoManager extends events.EventEmitter {
           name: "SAPISID",
           value: this.cookies.SAPISID,
           domain: ".youtube.com",
+        },
+        {
+          name: "LOGIN_INFO",
+          value: this.cookies.LOGIN_INFO,
+          domain: ".youtube.com",
         }
       );
       await page.setRequestInterception(true);
@@ -119,7 +124,7 @@ export class SessionInfoManager extends events.EventEmitter {
       authorization: authorization
         ? `SAPISIDHASH ${this.generateSAPISIDHASH()}`
         : undefined,
-      cookie: `SID=${this.cookies.SID}; HSID=${this.cookies.HSID}; SSID=${this.cookies.SSID}; APISID=${this.cookies.APISID}; SAPISID=${this.cookies.SAPISID}`,
+      cookie: `SID=${this.cookies.SID}; HSID=${this.cookies.HSID}; SSID=${this.cookies.SSID}; APISID=${this.cookies.APISID}; SAPISID=${this.cookies.SAPISID}; LOGIN_INFO=${this.cookies.LOGIN_INFO}`,
       origin: "https://studio.youtube.com",
       referer: "https://studio.youtube.com/",
       "user-agent": this.userAgent,
