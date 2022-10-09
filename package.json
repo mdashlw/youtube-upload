@@ -1,7 +1,23 @@
 {
-  "type": "module",
+  "name": "youtube-upload",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdashlw/youtube-upload.git"
+  },
+  "author": "mdashlw",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/mdashlw/youtube-upload/issues"
+  },
+  "homepage": "https://github.com/mdashlw/youtube-upload#readme",
   "dependencies": {
-    "puppeteer": "^18.0.5",
+    "puppeteer": "^18.2.1",
     "undici": "^5.11.0"
   }
 }
