@@ -15,7 +15,7 @@ const videoId = await studio.upload(
     stream: fs.createReadStream("./Sync-Footage-V1-H264.mp4"),
   },
   {
-    title: "Test Sync Footage",
+    title: `Test Sync Footage ${Date.now()}`,
     description: "Testing description",
     privacy: "UNLISTED",
   }
